@@ -227,21 +227,6 @@
 			instString = instString + "The first number indicates the number of white boxes, counting from the left.";
 			instString = instString + "If the first number is zero, then the row starts with a black box.";
 			printInstructions.appendChild(document.createTextNode(instString));
-			printInstructions = printObj.appendChild(document.createElement("p"));
-			printInstructions.appendChild(document.createTextNode("Examples:"));
-
-			var exampleOne = ["2","1","3"];
-			var exampleTwo = ["0","2","1","2","1"];
-			
-			printObj.appendChild(printExample(exampleOne));
-			printObj.appendChild(printExample(exampleTwo));
-			
-			printObj.appendChild(document.createElement("p"));
-			printObj.appendChild(document.createElement("hr"));
-
-			printInstructions = printObj.appendChild(document.createElement("p"));
-			printInstructions.appendChild(document.createTextNode("Now work out what this picture is:"));
-			printInstructions = printObj.appendChild(document.createElement("p"));
 
 			var printTable = printObj.appendChild(document.createElement("table"));
 			printTable.style.borderCollapse = "collapse";
@@ -259,7 +244,7 @@
 				printTableCell.style.border = "0px";
 				printTableCell.style.width = document.getElementById("printCellSize").value + "px";
 				printTableCell.style.height = document.getElementById("printCellSize").value + "px";
-				printTableCell.style.textAlign = "center";
+				printTableCell.style.textAlign = "center"
 				printTableCell.appendChild(document.createTextNode(" "));
 								
 				printTableCell = printTableRow.appendChild(document.createElement("td"));
@@ -269,45 +254,6 @@
 				printTableCell.style.textAlign = "left"
 				printTableCell.appendChild(document.createTextNode(encodedGrid[index]));
 			});			
-		}
-		
-		function printExample(exampleArray) {		
-			var printExampleTable = document.createElement("table");
-			printExampleTable.style.borderCollapse = "collapse";
-			var printExampleTableRow = printExampleTable.appendChild(document.createElement("tr"));
-			var toggle = 0;
-			exampleArray.forEach(function f(element) {
-				for (var i=0;i<element;i++) {
-					var printExampleCell = printExampleTableRow.appendChild(document.createElement("td"));
-					printExampleCell.style.border = "1px solid lightgray";
-					printExampleCell.style.width = document.getElementById("printCellSize").value + "px";
-					printExampleCell.style.height = document.getElementById("printCellSize").value + "px";
-					printExampleCell.style.textAlign = "center";;
-					if (toggle == 0)
-						printExampleCell.style.backgroundColor = "white";
-					else
-						printExampleCell.style.backgroundColor = "black";	
-					printExampleCell.appendChild(document.createTextNode(" "));
-				}
-				if (toggle == 0)
-					toggle = 1;
-				else
-					toggle = 0;
-			})
-			printExampleCell = printExampleTableRow.appendChild(document.createElement("td"));
-			printExampleCell.style.border = "0px";
-			printExampleCell.style.width = document.getElementById("printCellSize").value + "px";
-			printExampleCell.style.height = document.getElementById("printCellSize").value + "px";
-			printExampleCell.style.textAlign = "left";
-			printExampleCell.appendChild(document.createTextNode(" "));				
-			printExampleCell = printExampleTableRow.appendChild(document.createElement("td"));
-			printExampleCell.style.border = "0px";
-			printExampleCell.style.width = document.getElementById("printCellSize").value + "px";
-			printExampleCell.style.height = document.getElementById("printCellSize").value + "px";
-			printExampleCell.style.textAlign = "left";
-			printExampleCell.appendChild(document.createTextNode(exampleArray));			
-
-			return printExampleTable;
 		}
 		
 		createEmptyGrid();
