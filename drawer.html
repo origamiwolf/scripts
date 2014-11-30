@@ -20,7 +20,15 @@
 	<div id="divDisplay" onContextMenu = "return false"></div>
 	<div id="divSpacer">&nbsp;</div>
 	<div id="divEdit">
-	<textArea id="editBox" rows = "20" cols="20" wrap="hard"></textArea></div>
+	<textArea id="editBox" rows = "20" cols="20" wrap="hard"></textArea>
+		<div>
+			<p></p>
+			<button>Save Snapshot</button>
+			<button>Load Snapshot</button>
+		</div>
+		<div id="divSaveState">
+		</div>
+	</div>
 	<script language='javascript' type='text/javascript'>
 		
 		var editBox = document.getElementById("editBox");
@@ -30,13 +38,17 @@
 		document.body.addEventListener("mousedown", mouseClick);
 
 		var gridPic = [];
+		var gridSnapshot = [];
+		var gridSnapshotCounter = 0;
 		
-		for (var i=0;i<20;i++) {
-			gridPic[i] = "";
-			for (var j=0;j<20;j++) {
-				gridPic[i] = gridPic[i] + "0";
-			}
-		}		
+		function createEmptyGrid() {
+			for (var i=0;i<20;i++) {
+				gridPic[i] = "";
+				for (var j=0;j<20;j++) {
+					gridPic[i] = gridPic[i] + "0";
+				}
+			}		
+		}
 		
 		var colourMap = {
 			"0":"white",
@@ -139,12 +151,7 @@
 		function buttonClick(event) {
 			if (event.target.nodeName == "BUTTON") {
 				if (event.target.textContent == "Clear") {
-					for (var i=0;i<20;i++) {
-						gridPic[i] = "";
-						for (var j=0;j<20;j++) {
-							gridPic[i] = gridPic[i] + "0";
-						}
-					}
+					createEmptyGrid();
 					fillTextArea();
 					updateGrid();
 					return;
@@ -167,7 +174,38 @@
 					return;
 				}		
 				
+				if (event.target.textContent == "Save Snapshot") {
+					saveGrid();
+					return;
+				}		
+
+				if (event.target.textContent == "Load Snapshot") {
+					loadGrid();
+					return;
+				}		
+				
+				
 			}
+		}
+
+		function saveGrid() {
+			gridSnapshot.push(gridPic.slice(0));
+			gridSnapshotCounter = 0;
+			document.getElementById("divSaveState").innerHTML = "Snapshot saved.";
+		}
+		
+		function loadGrid() {
+			if (gridSnapshot.length == 0) {
+				createEmptyGrid();
+			} else {
+				gridPic = gridSnapshot[gridSnapshotCounter];
+				gridSnapshotCounter++;
+				document.getElementById("divSaveState").innerHTML = "Snapshot loaded.";
+				if (gridSnapshotCounter > gridSnapshot.length-1)
+					gridSnapshotCounter = 0;
+			}
+			fillTextArea();
+			updateGrid();
 		}
 		
 		function createPrintPage() {
@@ -218,6 +256,7 @@
 			}
 		}
 		
+		createEmptyGrid();
 		fillTextArea();
 		drawGrid();
 	</script>
