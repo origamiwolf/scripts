@@ -1,0 +1,254 @@
+<html>
+<head></head>
+<style>
+  table  { border-collapse: collapse; }
+  td, th { border: 1px solid black; padding: 0px 0px; width: 20px; height: 20px; }
+  th     { text-align: left; }
+  textarea { resize: none; font-family: "Courier New"; }
+  #divDisplay {float: left;}
+  #divEdit {float: left;}
+  #divSpacer {float: left; width: 40px;}
+</style>
+<body>
+	<div id="divButtons"></div>
+	<button>Clear</button>
+	<button>Print</button>
+	Print cell size&nbsp;<input type="text" id="printCellSize" value="40" cols="5">
+	&nbsp;Print cell font&nbsp;<input type="text" id="printFontSize" value="20" cols="5">
+	<p></p>
+	<div id="divDisplay"></div>
+	<div id="divSpacer">&nbsp;</div>
+	<div id="divEdit">
+	<textArea id="editBox" rows = "20" cols="20" wrap="hard"></textArea>
+		<div>
+			<p></p>
+			<button>Save Snapshot</button>
+			<button>Load Snapshot</button>
+		</div>
+		<div id="divSaveState">
+		</div>
+	</div>
+	<script language='javascript' type='text/javascript'>
+		
+		var editBox = document.getElementById("editBox");
+		editBox.addEventListener("change", updateGrid);
+		
+		document.body.addEventListener("click", buttonClick);
+		document.body.addEventListener("mousedown", mouseClick);
+
+		var encodedGrid = [];
+		var gridPic = [];
+		var gridSnapshot = [];
+		var gridSnapshotCounter = 0;
+
+		function createEmptyGrid() {
+			for (var i=0;i<10;i++) {
+				gridPic[i] = "";
+				for (var j=0;j<10;j++) {
+					gridPic[i] = gridPic[i] + "0";
+				}
+			}
+		}
+		
+		function encodeGrid() {
+			encodedGrid = [];
+			gridPic.forEach(function f(element,index) {
+				encodedGrid[index] = "";
+				var ind = 0;
+				var toggle = 0;
+				var counter = 0;
+				while (ind < element.length) {
+					if (element[ind] == toggle) {
+						ind++;
+						counter++;
+					} else {
+						ind++;
+						encodedGrid[index] = encodedGrid[index] + counter + ",";
+						counter = 1;
+						if (toggle == 0)
+							toggle = 1;
+						else
+							toggle = 0;
+					}
+				}
+				encodedGrid[index] = encodedGrid[index] + counter;
+			});
+		}
+		
+		function decodeGrid() {	
+			gridPic = [];
+			encodedGrid.forEach(function f(element,index) {
+				gridPic[index] = "";
+				var toggle = 0;
+				var lineArray = element.split(",");
+				for (var i=0;i<lineArray.length;i++) {
+					for (var j=0;j<lineArray[i];j++) {
+						gridPic[index] = gridPic[index].concat(toggle);
+					}
+					if (toggle == 0)
+						toggle = 1;
+					else
+						toggle = 0;					
+				}
+			});			
+
+			var maxLength = gridPic.reduce(function f(prev,cur) {
+				return Math.max(cur.length,prev);
+				},0);
+
+			gridPic.forEach(function f(element,index) {
+				var eLength = element.length;
+				if (element.length < maxLength) {
+					for (var i=0;i<maxLength - eLength;i++) {
+						element = element + "0";
+					}	
+				}
+				gridPic[index] = element;
+			})
+		}
+		
+		function fillTextArea() {
+			var htmlStr = "";
+			for (var i=0;i<encodedGrid.length;i++) {
+				htmlStr = htmlStr + encodedGrid[i];
+				htmlStr = htmlStr + "\n";
+			}
+			htmlStr = htmlStr.slice(0,htmlStr.length - 1);
+			editBox.value = htmlStr;
+		}
+		
+		function drawGrid() {
+			var canvas = document.getElementById("divDisplay");
+			var table = canvas.appendChild(document.createElement("table"));
+			table.id = "gridTable";
+			gridPic.forEach(function f(element,index) {
+				var tableRow = table.appendChild(document.createElement("tr"));
+				for (var i=0;i<element.length;i++) {
+					var tableCell = tableRow.appendChild(document.createElement("td"));
+					tableCell.id = index + "-" + i;
+					if (element[i] == 0)
+						tableCell.style.backgroundColor = "white";
+					else
+						tableCell.style.backgroundColor = "black";
+				}
+			} )
+		}
+		
+		function updateGrid() {
+			var canvas = document.getElementById("divDisplay");
+			encodedGrid = document.getElementById("editBox").value.split("\n");
+			decodeGrid();
+			fillTextArea();
+			canvas.removeChild(canvas.childNodes[0]);
+			drawGrid();
+		}
+
+		function mouseClick(event) {
+			if (event.target.nodeName == "TD") {
+				var coords = event.target.id.split("-");
+				if (event.which == 1) {
+					gridPic[coords[0]] = replaceAt(gridPic[coords[0]],coords[1]);
+					console.log(coords);
+				}
+				encodeGrid();
+				fillTextArea();
+				updateGrid();
+				return;
+			}
+		}
+		
+		function replaceAt(initStr,index) {
+			var arrayStr = initStr.split("");
+			var returnStr = "";
+			if (arrayStr[index] == 0)
+				arrayStr[index] = 1;
+			else
+				arrayStr[index] = 0;
+			arrayStr.forEach(function f(element) {
+				returnStr = returnStr.concat(element);
+			})
+			return returnStr;
+		}
+		
+		function buttonClick(event) {
+			if (event.target.nodeName == "BUTTON") {
+				if (event.target.textContent == "Clear") {
+					createEmptyGrid();
+					fillTextArea();
+					updateGrid();
+					return;
+				}
+				
+				if (event.target.textContent == "Print") {
+					createPrintPage();
+					return;
+				}		
+				
+				if (event.target.textContent == "Save Snapshot") {
+					saveGrid();
+					return;
+				}		
+
+				if (event.target.textContent == "Load Snapshot") {
+					loadGrid();
+					return;
+				}		
+				
+				
+			}
+		}
+
+		function saveGrid() {
+			gridSnapshot.push(gridPic.slice(0));
+			gridSnapshotCounter = 0;
+			document.getElementById("divSaveState").innerHTML = "Snapshot saved.";
+		}
+		
+		function loadGrid() {
+			if (gridSnapshot.length == 0) {
+				createEmptyGrid();
+			} else {
+				gridPic = gridSnapshot[gridSnapshotCounter];
+				gridSnapshotCounter++;
+				document.getElementById("divSaveState").innerHTML = "Snapshot loaded.";
+				if (gridSnapshotCounter > gridSnapshot.length-1)
+					gridSnapshotCounter = 0;
+			}
+			fillTextArea();
+			updateGrid();
+		}
+		
+		function createPrintPage() {
+			var myWindow = window.open();
+			var printObj = myWindow.document.body;
+			printObj.style.fontSize = "16px";
+			printObj.style.fontFamily = "Verdana";	
+			var printHdr = printObj.appendChild(document.createElement("h2"));
+			printHdr.style.textAlign = "center";
+			printHdr.appendChild(document.createTextNode("Colour Me!"));
+			var printTable = printObj.appendChild(document.createElement("table"));
+			printTable.style.borderCollapse = "collapse";
+			printTable.style.border = "2px solid black";
+			gridPic.forEach(function f(element,index) {
+				var printTableRow = printTable.appendChild(document.createElement("tr"));
+				for (var i=0;i<element.length;i++) {
+					var printTableCell = printTableRow.appendChild(document.createElement("td"));
+					printTableCell.style.border = "1px solid lightgray";
+					printTableCell.style.width = document.getElementById("printCellSize").value + "px";
+					printTableCell.style.height = document.getElementById("printCellSize").value + "px";
+					printTableCell.style.fontFamily = "Verdana";
+					printTableCell.style.color = "lightgray";
+					printTableCell.style.fontSize = document.getElementById("printFontSize").value + "px";
+					printTableCell.style.textAlign = "center"
+					printTableCell.appendChild(document.createTextNode(element[i]));
+				}
+			});			
+		}
+		
+		createEmptyGrid();
+		encodeGrid();
+		fillTextArea();
+		drawGrid();
+	</script>
+</body>
+</html>
