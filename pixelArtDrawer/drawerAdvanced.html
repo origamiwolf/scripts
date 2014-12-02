@@ -267,7 +267,9 @@
 				printTableCell.style.width = document.getElementById("printCellSize").value + "px";
 				printTableCell.style.height = document.getElementById("printCellSize").value + "px";
 				printTableCell.style.textAlign = "left"
-				printTableCell.appendChild(document.createTextNode(encodedGrid[index]));
+				printTableCell.style.fontSize = document.getElementById("printCellSize").value + "px";
+				printTableCell.style.fontFamily = "Verdana";
+				printTableCell.appendChild(document.createTextNode(encodedGrid[index]));				
 			});			
 		}
 		

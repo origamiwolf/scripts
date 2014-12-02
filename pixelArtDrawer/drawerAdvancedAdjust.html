@@ -12,12 +12,10 @@
 <body>
 	<div id="divButtons"></div>
 	<button>Clear</button>
-	<button>Random</button>
 	<button>Print</button>
-	Print cell size&nbsp;<input type="text" id="printCellSize" value="40" cols="5">
-	&nbsp;Print cell font&nbsp;<input type="text" id="printFontSize" value="20" cols="5">
+	Print cell size&nbsp;<input type="text" id="printCellSize" value="30" cols="5">
 	<p></p>
-	<div id="divDisplay" onContextMenu = "return false"></div>
+	<div id="divDisplay"></div>
 	<div id="divSpacer">&nbsp;</div>
 	<div id="divEdit">
 	<textArea id="editBox" rows = "20" cols="20" wrap="hard"></textArea>
@@ -43,26 +41,13 @@
 		var gridSnapshotCounter = 0;
 
 		function createEmptyGrid() {
-			for (var i=0;i<20;i++) {
+			for (var i=0;i<10;i++) {
 				gridPic[i] = "";
-				for (var j=0;j<20;j++) {
+				for (var j=0;j<10;j++) {
 					gridPic[i] = gridPic[i] + "0";
 				}
-			}		
+			}
 		}
-		
-		var colourMap = {
-			"0":"white",
-			"1":"blue",
-			"2":"green",
-			"3":"orange",
-			"4":"purple",
-			"5":"red",
-			"6":"yellow",
-			"7":"brown",
-			"8":"pink",
-			"9":"black",
-			"default":"white"} ;
 		
 		function encodeGrid() {
 			encodedGrid = [];
@@ -76,19 +61,21 @@
 						ind++;
 						counter++;
 					} else {
-						encodedGrid[index].concat(counter, ",");
-						counter = 0;
+						ind++;
+						encodedGrid[index] = encodedGrid[index] + counter + ",";
+						counter = 1;
 						if (toggle == 0)
 							toggle = 1;
 						else
 							toggle = 0;
 					}
 				}
-				encodedGrid[index].concat(counter);
+				encodedGrid[index] = encodedGrid[index] + counter;
 			});
 		}
 		
 		function decodeGrid() {	
+			gridPic = [];
 			encodedGrid.forEach(function f(element,index) {
 				gridPic[index] = "";
 				var toggle = 0;
@@ -104,13 +91,14 @@
 				}
 			});			
 
-			var maxLength = encodedGrid.reduce(function f(prev,cur) {
+			var maxLength = gridPic.reduce(function f(prev,cur) {
 				return Math.max(cur.length,prev);
 				},0);
-			console.log(maxLength);
+
 			gridPic.forEach(function f(element,index) {
+				var eLength = element.length;
 				if (element.length < maxLength) {
-					for (var i=0;i<1+maxLength - element.length;i++) {
+					for (var i=0;i<maxLength - eLength;i++) {
 						element = element + "0";
 					}	
 				}
@@ -119,6 +107,7 @@
 		}
 		
 		function fillTextArea() {
+			encodeGrid();
 			var htmlStr = "";
 			for (var i=0;i<encodedGrid.length;i++) {
 				htmlStr = htmlStr + encodedGrid[i];
@@ -152,17 +141,13 @@
 			fillTextArea();
 			canvas.removeChild(canvas.childNodes[0]);
 			drawGrid();
-			
 		}
 
 		function mouseClick(event) {
 			if (event.target.nodeName == "TD") {
 				var coords = event.target.id.split("-");
 				if (event.which == 1) {
-					gridPic[coords[0]] = replaceAt(gridPic[coords[0]],coords[1],1);
-				}
-				if (event.which == 3) {
-					gridPic[coords[0]] = replaceAt(gridPic[coords[0]],coords[1],-1);
+					gridPic[coords[0]] = replaceAt(gridPic[coords[0]],coords[1]);
 				}
 				fillTextArea();
 				updateGrid();
@@ -170,19 +155,13 @@
 			}
 		}
 		
-		function replaceAt(initStr,index,dir) {
+		function replaceAt(initStr,index) {
 			var arrayStr = initStr.split("");
 			var returnStr = "";
-			if (dir == 1) {
-				arrayStr[index]++;
-				if (arrayStr[index] > 9)
-					arrayStr[index] = 0;
-			}
-			if (dir == -1) {
-				arrayStr[index]--;
-				if (arrayStr[index] < 0)
-					arrayStr[index] = 9;
-			}
+			if (arrayStr[index] == 0)
+				arrayStr[index] = 1;
+			else
+				arrayStr[index] = 0;
 			arrayStr.forEach(function f(element) {
 				returnStr = returnStr.concat(element);
 			})
@@ -198,18 +177,6 @@
 					return;
 				}
 				
-				if (event.target.textContent == "Random") {
-					for (var i=0;i<20;i++) {
-						gridPic[i] = "";
-						for (var j=0;j<20;j++) {
-							gridPic[i] = gridPic[i] + (Math.floor(10*Math.random()));
-						}
-					}
-					fillTextArea();
-					updateGrid();
-					return;
-				}
-
 				if (event.target.textContent == "Print") {
 					createPrintPage();
 					return;
@@ -224,8 +191,6 @@
 					loadGrid();
 					return;
 				}		
-				
-				
 			}
 		}
 
@@ -252,14 +217,34 @@
 		function createPrintPage() {
 			var myWindow = window.open();
 			var printObj = myWindow.document.body;
-			printObj.style.fontSize = "16px";
+			printObj.style.fontSize = "12px";
 			printObj.style.fontFamily = "Verdana";	
 			var printHdr = printObj.appendChild(document.createElement("h2"));
 			printHdr.style.textAlign = "center";
-			printHdr.appendChild(document.createTextNode("Colour Me!"));
+			printHdr.appendChild(document.createTextNode("What is the Picture?"));
+			var printInstructions = printObj.appendChild(document.createElement("p"));
+			var instString = "The numbers on the right of each row is a representation of the image on that row.";
+			instString = instString + "The first number indicates the number of white boxes, counting from the left.";
+			instString = instString + "If the first number is zero, then the row starts with a black box.";
+			printInstructions.appendChild(document.createTextNode(instString));
+			printInstructions = printObj.appendChild(document.createElement("p"));
+			printInstructions.appendChild(document.createTextNode("Examples:"));
+
+			var exampleOne = ["2","1","3"];
+			var exampleTwo = ["0","2","1","2","1"];
+			
+			printObj.appendChild(printExample(exampleOne));
+			printObj.appendChild(printExample(exampleTwo));
+			
+			printObj.appendChild(document.createElement("p"));
+			printObj.appendChild(document.createElement("hr"));
+
+			printInstructions = printObj.appendChild(document.createElement("p"));
+			printInstructions.appendChild(document.createTextNode("Now work out what this picture is:"));
+			printInstructions = printObj.appendChild(document.createElement("p"));
+
 			var printTable = printObj.appendChild(document.createElement("table"));
 			printTable.style.borderCollapse = "collapse";
-			printTable.style.border = "2px solid black";
 			gridPic.forEach(function f(element,index) {
 				var printTableRow = printTable.appendChild(document.createElement("tr"));
 				for (var i=0;i<element.length;i++) {
@@ -267,38 +252,65 @@
 					printTableCell.style.border = "1px solid lightgray";
 					printTableCell.style.width = document.getElementById("printCellSize").value + "px";
 					printTableCell.style.height = document.getElementById("printCellSize").value + "px";
-					printTableCell.style.fontFamily = "Verdana";
-					printTableCell.style.color = "lightgray";
-					printTableCell.style.fontSize = document.getElementById("printFontSize").value + "px";
 					printTableCell.style.textAlign = "center"
-					printTableCell.appendChild(document.createTextNode(element[i]));
+					printTableCell.appendChild(document.createTextNode(" "));
 				}
-			});
-			
-			printObj.appendChild(document.createElement("br"));
-			var printLegendHeader = printObj.appendChild(document.createTextNode("Colour each box according to its number:"));
-			var printLegendTable = printObj.appendChild(document.createElement("table"));			
-			var printLegendTableRow = printLegendTable.appendChild(document.createElement("tr"));
-			printLegendTableRow2 = printLegendTable.appendChild(document.createElement("tr"));
-			for (var i=0;i<5;i++) {
-				var printLegendTableCell = printLegendTableRow2.appendChild(document.createElement("td"));
-				printLegendTableCell.appendChild(document.createTextNode(i + " - " + colourMap[i]));
-				printLegendTableCell.style.fontSize = "16px";
-				printLegendTableCell.style.fontFamily = "Verdana";
-				printLegendTableCell.style.padding = "5px 5px";
-			}
-			printLegendTableRow2 = printLegendTable.appendChild(document.createElement("tr"));
-			for (var i=5;i<10;i++) {
-				var printLegendTableCell = printLegendTableRow2.appendChild(document.createElement("td"));
-				printLegendTableCell.appendChild(document.createTextNode(i + " - " + colourMap[i]));
-				printLegendTableCell.style.fontSize = "16px";
-				printLegendTableCell.style.fontFamily = "Verdana";
-				printLegendTableCell.style.padding = "1px 5px";
-			}
+				var printTableCell = printTableRow.appendChild(document.createElement("td"));
+				printTableCell.style.border = "0px";
+				printTableCell.style.width = document.getElementById("printCellSize").value + "px";
+				printTableCell.style.height = document.getElementById("printCellSize").value + "px";
+				printTableCell.style.textAlign = "center";
+				printTableCell.appendChild(document.createTextNode(" "));
+								
+				printTableCell = printTableRow.appendChild(document.createElement("td"));
+				printTableCell.style.border = "0px";
+				printTableCell.style.width = document.getElementById("printCellSize").value + "px";
+				printTableCell.style.height = document.getElementById("printCellSize").value + "px";
+				printTableCell.style.textAlign = "left"
+				printTableCell.appendChild(document.createTextNode(encodedGrid[index]));
+			});			
+		}
+		
+		function printExample(exampleArray) {		
+			var printExampleTable = document.createElement("table");
+			printExampleTable.style.borderCollapse = "collapse";
+			var printExampleTableRow = printExampleTable.appendChild(document.createElement("tr"));
+			var toggle = 0;
+			exampleArray.forEach(function f(element) {
+				for (var i=0;i<element;i++) {
+					var printExampleCell = printExampleTableRow.appendChild(document.createElement("td"));
+					printExampleCell.style.border = "1px solid lightgray";
+					printExampleCell.style.width = document.getElementById("printCellSize").value + "px";
+					printExampleCell.style.height = document.getElementById("printCellSize").value + "px";
+					printExampleCell.style.textAlign = "center";;
+					if (toggle == 0)
+						printExampleCell.style.backgroundColor = "white";
+					else
+						printExampleCell.style.backgroundColor = "black";	
+					printExampleCell.appendChild(document.createTextNode(" "));
+				}
+				if (toggle == 0)
+					toggle = 1;
+				else
+					toggle = 0;
+			})
+			printExampleCell = printExampleTableRow.appendChild(document.createElement("td"));
+			printExampleCell.style.border = "0px";
+			printExampleCell.style.width = document.getElementById("printCellSize").value + "px";
+			printExampleCell.style.height = document.getElementById("printCellSize").value + "px";
+			printExampleCell.style.textAlign = "left";
+			printExampleCell.appendChild(document.createTextNode(" "));				
+			printExampleCell = printExampleTableRow.appendChild(document.createElement("td"));
+			printExampleCell.style.border = "0px";
+			printExampleCell.style.width = document.getElementById("printCellSize").value + "px";
+			printExampleCell.style.height = document.getElementById("printCellSize").value + "px";
+			printExampleCell.style.textAlign = "left";
+			printExampleCell.appendChild(document.createTextNode(exampleArray));			
+
+			return printExampleTable;
 		}
 		
 		createEmptyGrid();
-		encodeGrid();
 		fillTextArea();
 		drawGrid();
 	</script>

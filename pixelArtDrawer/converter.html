@@ -1,0 +1,51 @@
+<html>
+<head></head>
+<style>
+	#divRaw { float: left; )
+	#divEncode { float:left; }
+</style>
+<body>
+<div><button onclick=encode()>Encode</button></div>
+<div id="divRaw"><textarea id="textRaw" rows=30 cols=30></textarea></div>
+<div id="divEncode"><textarea id="textEncode" rows=30 cols=30></textarea></div>
+<script language="javascript" type="text/javascript">
+	
+	function encode() {
+		var textRaw = document.getElementById("textRaw").value;
+		gridPic = textRaw.split("\n");
+		
+		var encodedGrid = [];
+		gridPic.forEach(function f(element,index) {
+			encodedGrid[index] = "";
+			var ind = 0;
+			var toggle = 0;
+			var counter = 0;
+			while (ind < element.length) {
+				if (element[ind] == toggle) {
+					ind++;
+					counter++;
+				} else {
+					ind++;
+					encodedGrid[index] = encodedGrid[index] + counter + ",";
+					counter = 1;
+					if (toggle == 0)
+						toggle = 1;
+					else
+						toggle = 0;
+				}
+			}
+			encodedGrid[index] = encodedGrid[index] + counter;
+		});
+
+		var dispStr = "";
+		encodedGrid.forEach(function f(element) {
+			dispStr = dispStr + element + "\n";
+		})
+		dispStr.slice(0,dispStr.length-1);
+
+		document.getElementById("textEncode").value = dispStr;
+	}
+		
+	</script>
+</body>
+</html>
